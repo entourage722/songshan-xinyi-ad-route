@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>松信廣告車巡迴</title>
+<meta name="description" content="松山・信義九個次分區，逐里 Google Maps 巡迴路線">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;700&family=Noto+Sans+TC:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+  :root{
+    color-scheme: light;
+    --bg:#F0F2EA;
+    --surface:#FFFFFF;
+    --surface-2:#E7EBDF;
+    --ink:#1D2118;
+    --ink-soft:#565F4C;
+    --ink-faint:#8A9179;
+    --line:#C3CAB4;
+    --line-strong:#9FA88C;
+    --songshan-tint-strong:#B9CB9E;
+    --songshan-text:#4B5E36;
+    --xinyi-tint-strong:#DDC08A;
+    --xinyi-text:#7A5A22;
+    --cta:#2a5c4a;
+    --cta-text:#F4F7F1;
+    --shift-1:#2a78d6; /* 早班 */
+    --shift-2:#eb6834; /* 中班 */
+    --shift-3:#1baf7a; /* 晚班 */
+    --radius-lg:20px;
+    --radius-md:14px;
+    --radius-sm:9px;
+    --shadow: 0 1px 2px rgba(29,33,24,0.06), 0 10px 28px -14px rgba(29,33,24,0.28);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      color-scheme: dark;
+      --bg:#14160F; --surface:#1B1E15; --surface-2:#242818;
+      --ink:#ECEEE3; --ink-soft:#B7BEA6; --ink-faint:#7C8468;
+      --line:#3A4030; --line-strong:#4E5740;
+      --songshan-tint-strong:#3B4C28; --songshan-text:#B7D69A;
+      --xinyi-tint-strong:#544117; --xinyi-text:#E3BE72;
+      --cta:#3FA080; --cta-text:#0E1410;
+      --shift-1:#3987e5; --shift-2:#d95926; --shift-3:#199e70;
+      --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 10px 28px -14px rgba(0,0,0,0.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme: dark;
+    --bg:#14160F; --surface:#1B1E15; --surface-2:#242818;
+    --ink:#ECEEE3; --ink-soft:#B7BEA6; --ink-faint:#7C8468;
+    --line:#3A4030; --line-strong:#4E5740;
+    --songshan-tint-strong:#3B4C28; --songshan-text:#B7D69A;
+    --xinyi-tint-strong:#544117; --xinyi-text:#E3BE72;
+    --cta:#3FA080; --cta-text:#0E1410;
+    --shift-1:#3987e5; --shift-2:#d95926; --shift-3:#199e70;
+    --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 10px 28px -14px rgba(0,0,0,0.6);
+  }
+
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif;}
+  .page{max-width:1220px;margin:0 auto;padding:28px 20px 64px;}
+  h1,h2{font-family:'Noto Serif TC','Songti TC',serif;font-weight:700;margin:0;text-wrap:balance;}
+  .mono{font-family:'IBM Plex Mono',ui-monospace,'SF Mono',monospace;}
+  a{color:inherit;}
+
+  header.hero{display:flex;flex-direction:column;gap:8px;margin-bottom:18px;}
+  .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);}
+  header.hero h1{font-size:clamp(22px,3.4vw,30px);}
+
+  nav.day-strip{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 14px;scrollbar-width:thin;}
+  nav.day-strip::-webkit-scrollbar{height:6px;}
+  nav.day-strip::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:4px;}
+  .day-btn{flex:0 0 auto;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-md);padding:9px 13px;cursor:pointer;text-align:left;font-family:inherit;color:var(--ink);}
+  .day-btn:hover{border-color:var(--line-strong);}
+  .day-btn .d{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:14px;}
+  .day-btn .w{font-size:11px;color:var(--ink-faint);margin-left:4px;}
+  .day-btn .dots{display:flex;gap:4px;margin-top:6px;}
+  .day-btn .dots span{width:7px;height:7px;border-radius:50%;display:inline-block;}
+  .day-btn[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);}
+  .day-btn[aria-pressed="true"] .d,.day-btn[aria-pressed="true"] .w{color:var(--bg);}
+  .day-btn[aria-pressed="true"] .w{opacity:.6;}
+
+  .today-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-md);padding:12px 16px;margin:0 0 22px;font-size:13.5px;}
+  .today-bar .lbl{font-family:'IBM Plex Mono',monospace;color:var(--ink-faint);font-size:11.5px;letter-spacing:.05em;}
+  .today-bar .chip{display:inline-flex;align-items:center;gap:6px;background:var(--surface-2);border-radius:999px;padding:4px 10px 4px 8px;font-weight:600;}
+  .today-bar .chip .sw{width:8px;height:8px;border-radius:50%;}
+  .today-bar .arrow{color:var(--ink-faint);}
+
+  .section-head{margin:0 0 4px;}
+  .section-head h2{font-size:22px;}
+  .section-head .lede{font-size:13.5px;color:var(--ink-soft);margin:6px 0 0;line-height:1.75;max-width:76ch;}
+
+  .zone-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px;margin-top:18px;}
+  .zone-card{position:relative;border:1px solid var(--line);border-radius:var(--radius-lg);background:var(--surface);box-shadow:var(--shadow);padding:17px;display:flex;flex-direction:column;gap:11px;transition:outline-color .15s;}
+  .zone-card[data-active="true"]{outline:2px solid var(--ink);outline-offset:1px;}
+  .active-badge{position:absolute;top:-11px;left:16px;color:#fff;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;letter-spacing:.02em;}
+  .shift-legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:10px;font-size:12px;color:var(--ink-soft);}
+  .shift-legend .item{display:flex;align-items:center;gap:6px;}
+  .shift-legend .swatch{width:10px;height:10px;border-radius:50%;flex:0 0 auto;}
+  .zone-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+  .zone-name{font-size:20px;font-weight:700;}
+  .zone-oldname{font-size:11.5px;color:var(--ink-faint);margin-top:2px;}
+  .district-tag{font-size:10.5px;padding:3px 9px;border-radius:999px;font-weight:600;white-space:nowrap;}
+  .district-tag.songshan{background:var(--songshan-tint-strong);color:var(--songshan-text);}
+  .district-tag.xinyi{background:var(--xinyi-tint-strong);color:var(--xinyi-text);}
+  .li-count{font-size:12.5px;color:var(--ink-soft);display:flex;align-items:center;gap:6px;}
+  .li-count b{font-family:'IBM Plex Mono',monospace;color:var(--ink);font-size:14px;}
+
+  .cta-row{display:flex;flex-wrap:wrap;gap:8px;}
+  .cta-btn{flex:1;min-width:140px;display:flex;align-items:center;justify-content:center;gap:6px;background:var(--cta);color:var(--cta-text);text-decoration:none;font-weight:700;font-size:13px;border-radius:var(--radius-sm);padding:10px 12px;border:none;}
+  .cta-btn:hover{opacity:.92;}
+  .cta-btn svg{width:14px;height:14px;flex:0 0 auto;}
+
+  .li-toggle{background:none;border:1px solid var(--line);border-radius:var(--radius-sm);padding:7px 10px;font-family:inherit;font-size:12.5px;color:var(--ink-soft);cursor:pointer;display:flex;align-items:center;justify-content:space-between;}
+  .li-toggle .car{transition:transform .15s;}
+  .li-toggle[aria-expanded="true"] .car{transform:rotate(180deg);}
+  .li-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--ink-soft);}
+  .li-list[hidden]{display:none;}
+  .li-list li{display:flex;gap:8px;border-top:1px dashed var(--line);padding-top:5px;}
+  .li-list li:first-child{border-top:none;padding-top:0;}
+  .li-list .li-idx{font-family:'IBM Plex Mono',monospace;color:var(--ink-faint);flex:0 0 18px;}
+  .li-list .li-name{font-weight:600;color:var(--ink);flex:0 0 44px;}
+  .li-list .li-addr{flex:1;}
+
+  .landmark-wrap{font-size:11.5px;color:var(--ink-faint);}
+  .landmark-title{font-weight:600;color:var(--ink-soft);margin-bottom:5px;}
+  .chips{display:flex;flex-wrap:wrap;gap:5px;}
+  .chip-sm{background:var(--surface-2);border-radius:999px;padding:3px 9px;}
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <header class="hero">
+    <span class="eyebrow">AD TRUCK CIRCUIT · 台北市 松山區・信義區</span>
+    <h1>松山・信義次分區巡迴路線</h1>
+  </header>
+
+  <nav class="day-strip" id="dayStrip" aria-label="選擇日期"></nav>
+  <div class="today-bar" id="todayBar"></div>
+
+  <div class="section-head">
+    <h2>9 個次分區・逐里巡迴路線</h2>
+    <p class="lede">路線依台北市松山區公所／信義區公所公告的「里辦公處」地址排序，官方名冊本身即依次分區分段列出，故此排序已大致依地理相鄰順序排列。點「在 Google Maps 開啟路線」會依序帶入區內每個里的位置，實際道路與轉彎請以 Google Maps 導航為準；行車可依現場路況微調停靠順序。單一路線超過 8～9 站者已拆成「路段一／路段二」以避免超出 Google Maps 停靠站上限。點選上方日期，會標出當天早／中／晚班對應的三個次分區。</p>
+    <div class="shift-legend">
+      <span class="item"><span class="swatch" style="background:var(--shift-1)"></span>早班</span>
+      <span class="item"><span class="swatch" style="background:var(--shift-2)"></span>中班</span>
+      <span class="item"><span class="swatch" style="background:var(--shift-3)"></span>晚班</span>
+    </div>
+  </div>
+  <div class="zone-grid" id="zoneGrid"></div>
+
+</div>
+
+<script>
+(function(){
+
+  var ZONE_DATA = {
+    "東社": {district:"松山", oldname:"頂東勢、下埤頭", landmarks:["臺北松山機場","復北地下道","台塑大樓","中泰賓館","台北長庚醫院","台北文華東方酒店","S Hotel"],
+      li:[{n:"精忠",a:"臺北市松山區民生東路四段133號"},{n:"東光",a:"臺北市松山區南京東路五段123巷41號"},{n:"龍田",a:"臺北市松山區光復北路230巷21號"},{n:"東昌",a:"臺北市松山區民生東路四段112巷7弄24號"},{n:"東勢",a:"臺北市松山區南京東路四段133巷8弄4號"},{n:"中華",a:"臺北市松山區敦化北路145巷23弄1號"},{n:"民有",a:"臺北市松山區民權東路三段140巷15號"},{n:"民福",a:"臺北市松山區民權東路三段103巷5弄5號"},{n:"松基",a:"臺北市松山區長春路339巷2號"}],
+      legs:[{label:"全區巡迴（9里）",url:"https://www.google.com/maps/dir/%E8%87%BA%E5%8C%97%E5%B8%82%E6%9D%BE%E5%B1%B1%E5%8D%80%E6%B0%91%E7%94%9F%E6%9D%B1%E8%B7%AF%E5%9B%9B%E6%AE%B5133%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E6%9D%BE%E5%B1%B1%E5%8D%80%E5%8D%97%E4%BA%AC%E6%9D%B1%E8%B7%AF%E4%BA%94%E6%AE%B5123%E5%B7%B741%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E6%9D%BE%E5%B1%B1%E5%8D%80%E5%85%89%E5%BE%A9%E5%8C%97%E8%B7%AF230%E5%B7%B721%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E6%9D%BE%E5%B1%B1%E5%8D%80%E6%B0%91%E7%94%9F%E6%9D%B1%E8%B7%AF%E5%9B%9B%E6%AE%B5112%E5%B7%B77%E5%BC%8424%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E6%9D%BE%E5%B1%B1%E5%8D%80%E5%8D%97%E4%BA%AC%E6%9D%B1%E8%B7%AF%E5%9B%9B%E6%AE%B5133%E5%B7%B78%E5%BC%844%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E6%9D%BE%E5%B1%B1%E5%8D%80%E6%95%A6%E5%8C%96%E5%8C%97%E8%B7%AF145%E5%B7%B723%E5%BC%841%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E6%9D%BE%E5%B1%B1%E5%8D%80%E6%B0%91%E6%AC%8A%E6%9D%B1%E8%B7%AF%E4%B8%89%E6%AE%B5140%E5%B7%B715%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E6%9D%BE%E5%B1%B1%E5%8D%80%E6%B0%91%E6%AC%8A%E6%9D%B1%E8%B7%AF%E4%B8%89%E6%AE%B5103%E5%B7%B75%E5%BC%845%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E6%9D%BE%E5%B1%B1%E5%8D%80%E9%95%B7%E6%98%A5%E8%B7%AF339%E5%B7%B72%E8%99%9F"}]},
+
+    "三民": {district:"松山", oldname:"舊里族、上塔悠", landmarks:["三民圓環","民生社區","富錦街","富民生態公園"],
+      li:[{n:"莊敬",a:"臺北市松山區撫遠街394-1號"},{n:"東榮",a:"臺北市松山區民生東路五段69巷3號"},{n:"三民",a:"臺北市松山區民生東路五段163-1號8樓"},{n:"新益",a:"臺北市松山區民權東路五段102號對面"},{n:"富錦",a:"臺北市松山區富錦街515號1樓"},{n:"新東",a:"臺北市松山區延壽街3號1樓"},{n:"富泰",a:"臺北市松山區新東街1巷15號"},{n:"介壽",a:"臺北市松山區民生東路五段36巷4弄6號"}],
+      legs:[{label:"全區巡迴（8里）",url:"https://www.google.com/maps/dir/%E8%87%BA%E5%8C%97%E5%B8%82%E6%9D%BE%E5%B1%B1%E5%8D%80%E6%92%AB%E9%81%A0%E8%A1%97394-1%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E6%9D%BE%E5%B1%B1%E5%8D%80%E6%B0%91%E7%94%9F%E6%9D%B1%E8%B7%AF%E4%BA%94%E6%AE%B569%E5%B7%B73%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E6%9D%BE%E5%B1%B1%E5%8D%80%E6%B0%91%E7%94%9F%E6%9D%B1%E8%B7%AF%E4%BA%94%E6%AE%B5163-1%E8%99%9F8%E6%A8%93/%E8%87%BA%E5%8C%97%E5%B8%82%E6%9D%BE%E5%B1%B1%E5%8D%80%E6%B0%91%E6%AC%8A%E6%9D%B1%E8%B7%AF%E4%BA%94%E6%AE%B5102%E8%99%9F%E5%B0%8D%E9%9D%A2/%E8%87%BA%E5%8C%97%E5%B8%82%E6%9D%BE%E5%B1%B1%E5%8D%80%E5%AF%8C%E9%8C%A6%E8%A1%97515%E8%99%9F1%E6%A8%93/%E8%87%BA%E5%8C%97%E5%B8%82%E6%9D%BE%E5%B1%B1%E5%8D%80%E5%BB%B6%E5%A3%BD%E8%A1%973%E8%99%9F1%E6%A8%93/%E8%87%BA%E5%8C%97%E5%B8%82%E6%9D%BE%E5%B1%B1%E5%8D%80%E6%96%B0%E6%9D%B1%E8%A1%971%E5%B7%B715%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E6%9D%BE%E5%B1%B1%E5%8D%80%E6%B0%91%E7%94%9F%E6%9D%B1%E8%B7%AF%E4%BA%94%E6%AE%B536%E5%B7%B74%E5%BC%846%E8%99%9F"}]},
+
+    "中崙": {district:"松山", oldname:"中崙、頂東勢", landmarks:["臺北市藝文推廣處","臺北市立體育場","臺北小巨蛋","松山運動中心","台灣電視公司","星聚點","微風廣場","紀伊國屋","敦化國中","敦化國小","兄弟大飯店","王朝酒店","慶城街1號","微風南京","IKEA台北城市店"],
+      li:[{n:"中正",a:"臺北市松山區長安東路二段229號12樓"},{n:"中崙",a:"臺北市松山區八德路二段410巷16弄6號"},{n:"美仁",a:"臺北市松山區八德路三段99巷10號"},{n:"吉仁",a:"臺北市松山區八德路三段76號3樓之3"},{n:"敦化",a:"臺北市松山區八德路三段12巷51弄30號"},{n:"復源",a:"臺北市松山區八德路3段158巷12號"},{n:"復建",a:"臺北市松山區光復南路66巷34號"},{n:"復勢",a:"臺北市松山區光復北路120巷16號"},{n:"福成",a:"臺北市松山區敦化南路1段100巷5弄4號"}],
+      legs:[{label:"全區巡迴（9里）",url:"https://www.google.com/maps/dir/%E8%87%BA%E5%8C%97%E5%B8%82%E6%9D%BE%E5%B1%B1%E5%8D%80%E9%95%B7%E5%AE%89%E6%9D%B1%E8%B7%AF%E4%BA%8C%E6%AE%B5229%E8%99%9F12%E6%A8%93/%E8%87%BA%E5%8C%97%E5%B8%82%E6%9D%BE%E5%B1%B1%E5%8D%80%E5%85%AB%E5%BE%B7%E8%B7%AF%E4%BA%8C%E6%AE%B5410%E5%B7%B716%E5%BC%846%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E6%9D%BE%E5%B1%B1%E5%8D%80%E5%85%AB%E5%BE%B7%E8%B7%AF%E4%B8%89%E6%AE%B599%E5%B7%B710%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E6%9D%BE%E5%B1%B1%E5%8D%80%E5%85%AB%E5%BE%B7%E8%B7%AF%E4%B8%89%E6%AE%B576%E8%99%9F3%E6%A8%93%E4%B9%8B3/%E8%87%BA%E5%8C%97%E5%B8%82%E6%9D%BE%E5%B1%B1%E5%8D%80%E5%85%AB%E5%BE%B7%E8%B7%AF%E4%B8%89%E6%AE%B512%E5%B7%B751%E5%BC%8430%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E6%9D%BE%E5%B1%B1%E5%8D%80%E5%85%AB%E5%BE%B7%E8%B7%AF3%E6%AE%B5158%E5%B7%B712%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E6%9D%BE%E5%B1%B1%E5%8D%80%E5%85%89%E5%BE%A9%E5%8D%97%E8%B7%AF66%E5%B7%B734%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E6%9D%BE%E5%B1%B1%E5%8D%80%E5%85%89%E5%BE%A9%E5%8C%97%E8%B7%AF120%E5%B7%B716%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E6%9D%BE%E5%B1%B1%E5%8D%80%E6%95%A6%E5%8C%96%E5%8D%97%E8%B7%AF1%E6%AE%B5100%E5%B7%B75%E5%BC%844%E8%99%9F"}]},
+
+    "本鎮": {district:"松山", oldname:"錫口、舊里族", landmarks:["饒河街觀光夜市","松山慈祐宮","松山車站"],
+      li:[{n:"慈祐",a:"臺北市松山區市民大道六段9號"},{n:"安平",a:"臺北市松山區南京東路5段291巷44弄23-1號5樓"},{n:"鵬程",a:"臺北市松山區健康路401號"},{n:"自強",a:"臺北市松山區延壽街330巷17弄2號"},{n:"吉祥",a:"臺北市松山區八德路4段245巷52弄5號"},{n:"新聚",a:"臺北市松山區南京東路五段250巷9之7號"},{n:"復盛",a:"臺北市松山區市民大道五段99之3號"}],
+      legs:[{label:"全區巡迴（7里）",url:"https://www.google.com/maps/dir/%E8%87%BA%E5%8C%97%E5%B8%82%E6%9D%BE%E5%B1%B1%E5%8D%80%E5%B8%82%E6%B0%91%E5%A4%A7%E9%81%93%E5%85%AD%E6%AE%B59%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E6%9D%BE%E5%B1%B1%E5%8D%80%E5%8D%97%E4%BA%AC%E6%9D%B1%E8%B7%AF5%E6%AE%B5291%E5%B7%B744%E5%BC%8423-1%E8%99%9F5%E6%A8%93/%E8%87%BA%E5%8C%97%E5%B8%82%E6%9D%BE%E5%B1%B1%E5%8D%80%E5%81%A5%E5%BA%B7%E8%B7%AF401%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E6%9D%BE%E5%B1%B1%E5%8D%80%E5%BB%B6%E5%A3%BD%E8%A1%97330%E5%B7%B717%E5%BC%842%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E6%9D%BE%E5%B1%B1%E5%8D%80%E5%85%AB%E5%BE%B7%E8%B7%AF4%E6%AE%B5245%E5%B7%B752%E5%BC%845%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E6%9D%BE%E5%B1%B1%E5%8D%80%E5%8D%97%E4%BA%AC%E6%9D%B1%E8%B7%AF%E4%BA%94%E6%AE%B5250%E5%B7%B79%E4%B9%8B7%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E6%9D%BE%E5%B1%B1%E5%8D%80%E5%B8%82%E6%B0%91%E5%A4%A7%E9%81%93%E4%BA%94%E6%AE%B599%E4%B9%8B3%E8%99%9F"}]},
+
+    "三張犁": {district:"信義", oldname:"興雅", landmarks:["信義計畫區","台北101","世貿","台北國際會議中心","臺北南山廣場","誠品信義店","W Hotel","統一時代百貨台北店","華新麗華大樓","台北寒舍艾美酒店","寒舍艾麗酒店","台北君悅酒店","微風南山","微風松高","微風信義","新光三越A4/A8/A9/A11","遠百信義A13","松仁威秀","Apple 信義A13／台北101","信義威秀","ATT 4 FUN","Neo19","國泰置地廣場","Bellavita","松山文創園區","誠品松菸店／電影院","國父紀念館","松山高中","臺北市政府","臺北市議會","市府轉運站","陶朱隱園","香堤大道廣場","宏泰交易廣場","群益金融大樓","古蹟：松山菸廠","古蹟：鐵路局台北機廠澡堂"],
+      li:[{n:"西村",a:"臺北市信義區基隆路1段364巷22號"},{n:"正和",a:"臺北市信義區仁愛路4段452巷3號"},{n:"興隆",a:"臺北市信義區基隆路1段350之11號"},{n:"中興",a:"臺北市信義區嘉興街58號"},{n:"新仁",a:"臺北市信義區忠孝東路4段553巷22弄21號"},{n:"興雅",a:"臺北市信義區松隆路26號"},{n:"敦厚",a:"臺北市信義區永吉路30巷102弄14號"},{n:"廣居",a:"臺北市信義區忠孝東路5段372巷27弄75之1號"},{n:"安康",a:"臺北市信義區虎林街232巷55號"}],
+      legs:[{label:"全區巡迴（9里）",url:"https://www.google.com/maps/dir/%E8%87%BA%E5%8C%97%E5%B8%82%E4%BF%A1%E7%BE%A9%E5%8D%80%E5%9F%BA%E9%9A%86%E8%B7%AF1%E6%AE%B5364%E5%B7%B722%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E4%BF%A1%E7%BE%A9%E5%8D%80%E4%BB%81%E6%84%9B%E8%B7%AF4%E6%AE%B5452%E5%B7%B73%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E4%BF%A1%E7%BE%A9%E5%8D%80%E5%9F%BA%E9%9A%86%E8%B7%AF1%E6%AE%B5350%E4%B9%8B11%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E4%BF%A1%E7%BE%A9%E5%8D%80%E5%98%89%E8%88%88%E8%A1%9758%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E4%BF%A1%E7%BE%A9%E5%8D%80%E5%BF%A0%E5%AD%9D%E6%9D%B1%E8%B7%AF4%E6%AE%B5553%E5%B7%B722%E5%BC%8421%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E4%BF%A1%E7%BE%A9%E5%8D%80%E6%9D%BE%E9%9A%86%E8%B7%AF26%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E4%BF%A1%E7%BE%A9%E5%8D%80%E6%B0%B8%E5%90%89%E8%B7%AF30%E5%B7%B7102%E5%BC%8414%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E4%BF%A1%E7%BE%A9%E5%8D%80%E5%BF%A0%E5%AD%9D%E6%9D%B1%E8%B7%AF5%E6%AE%B5372%E5%B7%B727%E5%BC%8475%E4%B9%8B1%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E4%BF%A1%E7%BE%A9%E5%8D%80%E8%99%8E%E6%9E%97%E8%A1%97232%E5%B7%B755%E8%99%9F"}]},
+
+    "五分埔": {district:"信義", oldname:"五分埔", landmarks:["松山車站","五分埔服飾商圈"],
+      li:[{n:"六藝",a:"臺北市信義區永吉路120巷43弄3號"},{n:"雅祥",a:"臺北市信義區基隆路1段35巷7弄35號"},{n:"五常",a:"臺北市信義區松信路58號"},{n:"五全",a:"臺北市信義區永吉路278巷1弄13號"},{n:"永吉",a:"臺北市信義區永吉路517巷1弄10號"},{n:"長春",a:"臺北市信義區忠孝東路5段423巷47號"},{n:"四育",a:"臺北市信義區松山路180號"},{n:"四維",a:"臺北市信義區虎林街70巷1號"},{n:"永春",a:"臺北市信義區松山路287巷3弄21號"},{n:"富台",a:"臺北市信義區忠孝東路5段423巷4弄22號"}],
+      legs:[
+        {label:"路段一（六藝→長春．6里）",url:"https://www.google.com/maps/dir/%E8%87%BA%E5%8C%97%E5%B8%82%E4%BF%A1%E7%BE%A9%E5%8D%80%E6%B0%B8%E5%90%89%E8%B7%AF120%E5%B7%B743%E5%BC%843%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E4%BF%A1%E7%BE%A9%E5%8D%80%E5%9F%BA%E9%9A%86%E8%B7%AF1%E6%AE%B535%E5%B7%B77%E5%BC%8435%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E4%BF%A1%E7%BE%A9%E5%8D%80%E6%9D%BE%E4%BF%A1%E8%B7%AF58%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E4%BF%A1%E7%BE%A9%E5%8D%80%E6%B0%B8%E5%90%89%E8%B7%AF278%E5%B7%B71%E5%BC%8413%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E4%BF%A1%E7%BE%A9%E5%8D%80%E6%B0%B8%E5%90%89%E8%B7%AF517%E5%B7%B71%E5%BC%8410%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E4%BF%A1%E7%BE%A9%E5%8D%80%E5%BF%A0%E5%AD%9D%E6%9D%B1%E8%B7%AF5%E6%AE%B5423%E5%B7%B747%E8%99%9F"},
+        {label:"路段二（長春→富台．5里）",url:"https://www.google.com/maps/dir/%E8%87%BA%E5%8C%97%E5%B8%82%E4%BF%A1%E7%BE%A9%E5%8D%80%E5%BF%A0%E5%AD%9D%E6%9D%B1%E8%B7%AF5%E6%AE%B5423%E5%B7%B747%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E4%BF%A1%E7%BE%A9%E5%8D%80%E6%9D%BE%E5%B1%B1%E8%B7%AF180%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E4%BF%A1%E7%BE%A9%E5%8D%80%E8%99%8E%E6%9E%97%E8%A1%9770%E5%B7%B71%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E4%BF%A1%E7%BE%A9%E5%8D%80%E6%9D%BE%E5%B1%B1%E8%B7%AF287%E5%B7%B73%E5%BC%8421%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E4%BF%A1%E7%BE%A9%E5%8D%80%E5%BF%A0%E5%AD%9D%E6%9D%B1%E8%B7%AF5%E6%AE%B5423%E5%B7%B74%E5%BC%8422%E8%99%9F"}
+      ]},
+
+    "福德": {district:"信義", oldname:"永春坡、中坡", landmarks:["臺北市立永春高級中學","永春陂濕地公園","廣慈博愛院","松山慈惠堂","松山奉天宮","林口街夜市"],
+      li:[{n:"國業",a:"臺北市信義區虎林街222巷15號"},{n:"松隆",a:"臺北市信義區松山路650巷15弄臨18之6號"},{n:"松友",a:"臺北市信義區信義路六段76巷2弄22號"},{n:"松光",a:"臺北市信義區忠孝東路5段492巷32號"},{n:"中坡",a:"臺北市信義區福德街125號"},{n:"中行",a:"臺北市信義區福德街268巷32號"},{n:"大道",a:"臺北市信義區忠孝東路5段790巷62弄4號"},{n:"大仁",a:"臺北市信義區福德街96號"}],
+      legs:[{label:"全區巡迴（8里）",url:"https://www.google.com/maps/dir/%E8%87%BA%E5%8C%97%E5%B8%82%E4%BF%A1%E7%BE%A9%E5%8D%80%E8%99%8E%E6%9E%97%E8%A1%97222%E5%B7%B715%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E4%BF%A1%E7%BE%A9%E5%8D%80%E6%9D%BE%E5%B1%B1%E8%B7%AF650%E5%B7%B715%E5%BC%84%E8%87%A818%E4%B9%8B6%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E4%BF%A1%E7%BE%A9%E5%8D%80%E4%BF%A1%E7%BE%A9%E8%B7%AF%E5%85%AD%E6%AE%B576%E5%B7%B72%E5%BC%8422%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E4%BF%A1%E7%BE%A9%E5%8D%80%E5%BF%A0%E5%AD%9D%E6%9D%B1%E8%B7%AF5%E6%AE%B5492%E5%B7%B732%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E4%BF%A1%E7%BE%A9%E5%8D%80%E7%A6%8F%E5%BE%B7%E8%A1%97125%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E4%BF%A1%E7%BE%A9%E5%8D%80%E7%A6%8F%E5%BE%B7%E8%A1%97268%E5%B7%B732%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E4%BF%A1%E7%BE%A9%E5%8D%80%E5%BF%A0%E5%AD%9D%E6%9D%B1%E8%B7%AF5%E6%AE%B5790%E5%B7%B762%E5%BC%844%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E4%BF%A1%E7%BE%A9%E5%8D%80%E7%A6%8F%E5%BE%B7%E8%A1%9796%E8%99%9F"}]},
+
+    "吳興": {district:"信義", oldname:"三張犁", landmarks:["信義運動中心","象山公園","象山","台北市立聯合醫院松德院區","挹翠山莊","信義路五段150巷","四四南村眷村文化公園"],
+      li:[{n:"景新",a:"臺北市信義區莊敬路178巷20號"},{n:"惠安",a:"臺北市信義區吳興街506巷21號"},{n:"三張",a:"臺北市信義區莊敬路423巷6弄1號"},{n:"三犁",a:"臺北市信義區信義路5段150巷14弄6號"},{n:"六合",a:"臺北市信義區松仁路240巷19號"},{n:"泰和",a:"臺北市信義區松仁路308巷63號"}],
+      legs:[{label:"全區巡迴（6里）",url:"https://www.google.com/maps/dir/%E8%87%BA%E5%8C%97%E5%B8%82%E4%BF%A1%E7%BE%A9%E5%8D%80%E8%8E%8A%E6%95%AC%E8%B7%AF178%E5%B7%B720%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E4%BF%A1%E7%BE%A9%E5%8D%80%E5%90%B3%E8%88%88%E8%A1%97506%E5%B7%B721%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E4%BF%A1%E7%BE%A9%E5%8D%80%E8%8E%8A%E6%95%AC%E8%B7%AF423%E5%B7%B76%E5%BC%841%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E4%BF%A1%E7%BE%A9%E5%8D%80%E4%BF%A1%E7%BE%A9%E8%B7%AF5%E6%AE%B5150%E5%B7%B714%E5%BC%846%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E4%BF%A1%E7%BE%A9%E5%8D%80%E6%9D%BE%E4%BB%81%E8%B7%AF240%E5%B7%B719%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E4%BF%A1%E7%BE%A9%E5%8D%80%E6%9D%BE%E4%BB%81%E8%B7%AF308%E5%B7%B763%E8%99%9F"}]},
+
+    "六張犁": {district:"信義", oldname:"六張犁、三張犁", landmarks:["台北醫學大學附設醫院","舊陸軍臺北聯合保修廠營區"],
+      li:[{n:"景聯",a:"臺北市信義區吳興街106巷9號"},{n:"景勤",a:"臺北市信義區信安街15巷46弄6號"},{n:"雙和",a:"臺北市信義區吳興街284巷24弄16號"},{n:"嘉興",a:"臺北市信義區嘉興街175巷6號"},{n:"黎順",a:"臺北市信義區崇德街15號"},{n:"黎平",a:"臺北市信義區富陽街55巷9號"},{n:"黎忠",a:"臺北市信義區和平東路三段391巷16號"},{n:"黎安",a:"臺北市信義區和平東路3段627巷41弄8之1號"}],
+      legs:[{label:"全區巡迴（8里）",url:"https://www.google.com/maps/dir/%E8%87%BA%E5%8C%97%E5%B8%82%E4%BF%A1%E7%BE%A9%E5%8D%80%E5%90%B3%E8%88%88%E8%A1%97106%E5%B7%B79%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E4%BF%A1%E7%BE%A9%E5%8D%80%E4%BF%A1%E5%AE%89%E8%A1%9715%E5%B7%B746%E5%BC%846%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E4%BF%A1%E7%BE%A9%E5%8D%80%E5%90%B3%E8%88%88%E8%A1%97284%E5%B7%B724%E5%BC%8416%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E4%BF%A1%E7%BE%A9%E5%8D%80%E5%98%89%E8%88%88%E8%A1%97175%E5%B7%B76%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E4%BF%A1%E7%BE%A9%E5%8D%80%E5%B4%87%E5%BE%B7%E8%A1%9715%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E4%BF%A1%E7%BE%A9%E5%8D%80%E5%AF%8C%E9%99%BD%E8%A1%9755%E5%B7%B79%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E4%BF%A1%E7%BE%A9%E5%8D%80%E5%92%8C%E5%B9%B3%E6%9D%B1%E8%B7%AF%E4%B8%89%E6%AE%B5391%E5%B7%B716%E8%99%9F/%E8%87%BA%E5%8C%97%E5%B8%82%E4%BF%A1%E7%BE%A9%E5%8D%80%E5%92%8C%E5%B9%B3%E6%9D%B1%E8%B7%AF3%E6%AE%B5627%E5%B7%B741%E5%BC%848%E4%B9%8B1%E8%99%9F"}]}
+  };
+
+  var ZONE_ORDER = ["東社","三民","中崙","本鎮","三張犁","五分埔","福德","吳興","六張犁"];
+
+  var SHIFT_META = {
+    '早班': {color:'var(--shift-1)'},
+    '中班': {color:'var(--shift-2)'},
+    '晚班': {color:'var(--shift-3)'}
+  };
+
+  var SCHEDULE = [
+    {date:'9/3',  wd:'四', stops:[{shift:'早班',zone:'三民'},  {shift:'中班',zone:'東社'},  {shift:'晚班',zone:'本鎮'}]},
+    {date:'9/4',  wd:'五', stops:[{shift:'早班',zone:'中崙'},  {shift:'中班',zone:'三張犁'},{shift:'晚班',zone:'五分埔'}]},
+    {date:'9/5',  wd:'六', stops:[{shift:'早班',zone:'福德'},  {shift:'中班',zone:'吳興'},  {shift:'晚班',zone:'六張犁'}]},
+    {date:'9/6',  wd:'日', stops:[{shift:'早班',zone:'本鎮'},  {shift:'中班',zone:'三民'},  {shift:'晚班',zone:'東社'}]},
+    {date:'9/7',  wd:'一', stops:[{shift:'早班',zone:'五分埔'},{shift:'中班',zone:'中崙'},  {shift:'晚班',zone:'三張犁'}]},
+    {date:'9/8',  wd:'二', stops:[{shift:'早班',zone:'六張犁'},{shift:'中班',zone:'福德'},  {shift:'晚班',zone:'吳興'}]},
+    {date:'9/9',  wd:'三', stops:[{shift:'早班',zone:'東社'},  {shift:'中班',zone:'本鎮'},  {shift:'晚班',zone:'三民'}]},
+    {date:'9/10', wd:'四', stops:[{shift:'早班',zone:'三張犁'},{shift:'中班',zone:'五分埔'},{shift:'晚班',zone:'中崙'}]},
+    {date:'9/11', wd:'五', stops:[{shift:'早班',zone:'吳興'},  {shift:'中班',zone:'六張犁'},{shift:'晚班',zone:'福德'}]},
+    {date:'9/12', wd:'六', stops:[{shift:'早班',zone:'三民'},  {shift:'中班',zone:'東社'},  {shift:'晚班',zone:'本鎮'}]}
+  ];
+
+  var mapPin = '<svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 1c-3.3 0-6 2.6-6 6 0 4.4 6 12 6 12s6-7.6 6-12c0-3.4-2.7-6-6-6zm0 8.3A2.3 2.3 0 1 1 10 4.7a2.3 2.3 0 0 1 0 4.6z"/></svg>';
+
+  var zoneGrid = document.getElementById('zoneGrid');
+  var dayStrip = document.getElementById('dayStrip');
+  var todayBar = document.getElementById('todayBar');
+  var cardEls = {};
+
+  ZONE_ORDER.forEach(function(name){
+    var z = ZONE_DATA[name];
+    var card = document.createElement('div');
+    card.className = 'zone-card';
+
+    var tagClass = z.district === '松山' ? 'songshan' : 'xinyi';
+
+    var ctaHtml = z.legs.map(function(leg){
+      return '<a class="cta-btn" href="'+leg.url+'" target="_blank" rel="noopener">' + mapPin + '<span>' + leg.label + '</span></a>';
+    }).join('');
+
+    var liHtml = z.li.map(function(li, idx){
+      return '<li><span class="li-idx mono">'+(idx+1)+'</span><span class="li-name">'+li.n+'里</span><span class="li-addr">'+li.a+'</span></li>';
+    }).join('');
+
+    var lmHtml = z.landmarks.length ? (
+      '<div class="landmark-wrap"><div class="landmark-title">重要地標（沿途參考，非停靠站）</div><div class="chips">' +
+      z.landmarks.map(function(l){ return '<span class="chip-sm">'+l+'</span>'; }).join('') +
+      '</div></div>'
+    ) : '';
+
+    card.innerHTML =
+      '<div class="zone-head">' +
+        '<div><div class="zone-name">'+name+'次分區</div><div class="zone-oldname">固有地名：'+z.oldname+'</div></div>' +
+        '<span class="district-tag '+tagClass+'">'+z.district+'區</span>' +
+      '</div>' +
+      '<div class="li-count">里別覆蓋 <b>'+z.li.length+'</b> 里（全數納入路線）</div>' +
+      '<div class="cta-row">'+ctaHtml+'</div>' +
+      '<button class="li-toggle" aria-expanded="false" type="button">' +
+        '<span>顯示 '+z.li.length+' 里巡迴清單</span><span class="car">▾</span>' +
+      '</button>' +
+      '<ol class="li-list" hidden>'+liHtml+'</ol>' +
+      lmHtml;
+
+    zoneGrid.appendChild(card);
+    cardEls[name] = card;
+
+    var toggleBtn = card.querySelector('.li-toggle');
+    var liList = card.querySelector('.li-list');
+    toggleBtn.addEventListener('click', function(){
+      var expanded = toggleBtn.getAttribute('aria-expanded') === 'true';
+      toggleBtn.setAttribute('aria-expanded', String(!expanded));
+      liList.hidden = expanded;
+      toggleBtn.querySelector('span').textContent = expanded ? ('顯示 '+z.li.length+' 里巡迴清單') : '收合里別清單';
+    });
+  });
+
+  // ---- day strip ----
+  SCHEDULE.forEach(function(day, i){
+    var btn = document.createElement('button');
+    btn.className = 'day-btn';
+    btn.setAttribute('aria-pressed', i === 0 ? 'true' : 'false');
+    btn.innerHTML = '<span class="d">'+day.date+'</span><span class="w">('+day.wd+')</span><div class="dots">' +
+      day.stops.map(function(s){ return '<span style="background:'+SHIFT_META[s.shift].color+'"></span>'; }).join('') +
+      '</div>';
+    btn.addEventListener('click', function(){ selectDay(i); });
+    dayStrip.appendChild(btn);
+  });
+
+  function selectDay(i){
+    var day = SCHEDULE[i];
+
+    Array.prototype.forEach.call(dayStrip.children, function(btn, idx){
+      btn.setAttribute('aria-pressed', idx === i ? 'true' : 'false');
+    });
+
+    todayBar.innerHTML = '<span class="lbl">'+day.date+'（星期'+day.wd+'）今日路線</span>' + day.stops.map(function(s, idx){
+      var meta = SHIFT_META[s.shift];
+      return (idx>0 ? '<span class="arrow">→</span>' : '') +
+        '<span class="chip"><span class="sw" style="background:'+meta.color+'"></span>'+s.shift+' '+s.zone+'（'+ZONE_DATA[s.zone].district+'）</span>';
+    }).join('');
+
+    ZONE_ORDER.forEach(function(name){
+      var card = cardEls[name];
+      var existingBadge = card.querySelector('.active-badge');
+      if (existingBadge) existingBadge.remove();
+      var stop = day.stops.find(function(s){ return s.zone === name; });
+      if (stop){
+        card.dataset.active = 'true';
+        var meta = SHIFT_META[stop.shift];
+        var b = document.createElement('span');
+        b.className = 'active-badge';
+        b.style.background = meta.color;
+        b.textContent = day.date + ' ' + stop.shift;
+        card.appendChild(b);
+      } else {
+        card.dataset.active = 'false';
+      }
+    });
+  }
+
+  selectDay(0);
+})();
+</script>
+
+</body>
+</html>
