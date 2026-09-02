@@ -32,6 +32,7 @@
     --radius-sm:9px;
     --shadow: 0 1px 2px rgba(29,33,24,0.06), 0 10px 28px -14px rgba(29,33,24,0.28);
     --danger:#B3432B;
+    --today-ring:#2a5c4a;
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
@@ -45,6 +46,7 @@
       --shift-1:#3987e5; --shift-2:#d95926; --shift-3:#199e70;
       --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 10px 28px -14px rgba(0,0,0,0.6);
       --danger:#D9714F;
+      --today-ring:#3FA080;
     }
   }
   :root[data-theme="dark"]{
@@ -58,11 +60,12 @@
     --shift-1:#3987e5; --shift-2:#d95926; --shift-3:#199e70;
     --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 10px 28px -14px rgba(0,0,0,0.6);
     --danger:#D9714F;
+    --today-ring:#3FA080;
   }
 
   *{box-sizing:border-box;}
   body{margin:0;background:var(--bg);color:var(--ink);font-family:'Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif;}
-  .page{max-width:920px;margin:0 auto;padding:28px 20px 64px;}
+  .page{max-width:820px;margin:0 auto;padding:28px 20px 90px;}
   h1,h2{font-family:'Noto Serif TC','Songti TC',serif;font-weight:700;margin:0;text-wrap:balance;}
   .mono{font-family:'IBM Plex Mono',ui-monospace,'SF Mono',monospace;}
   a{color:inherit;}
@@ -84,17 +87,17 @@
   .status-bar.ok .status-dot{background:var(--cta);}
   .status-bar.err .status-dot{background:var(--danger);}
 
-  .day-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);box-shadow:var(--shadow);padding:16px 18px;margin-bottom:14px;}
+  .day-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);box-shadow:var(--shadow);padding:16px 18px;margin-bottom:14px;scroll-margin-top:16px;}
+  .day-card.is-today{border-color:var(--today-ring);box-shadow:0 0 0 2px var(--today-ring), var(--shadow);}
   .day-card .day-head{display:flex;align-items:baseline;gap:8px;margin-bottom:12px;}
   .day-card .day-head .d{font-family:'Noto Serif TC',serif;font-weight:700;font-size:17px;}
-  .day-card .day-head .wd{color:var(--ink-faint);font-size:13px;}
+  .day-card .day-head .today-badge{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.06em;background:var(--today-ring);color:var(--cta-text);padding:2px 8px;border-radius:999px;}
 
-  .slot-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line);}
+  .slot-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line);flex-wrap:wrap;}
   .slot-row:first-of-type{border-top:none;}
   .slot-tag{flex:0 0 auto;display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;min-width:150px;}
   .slot-tag .swatch{width:10px;height:10px;border-radius:3px;display:inline-block;}
   .slot-tag .t{color:var(--ink-faint);font-weight:400;font-family:'IBM Plex Mono',monospace;font-size:11.5px;}
-  .slot-zone{flex:0 0 auto;font-size:13px;color:var(--ink-soft);min-width:64px;}
   .slot-state{flex:1 1 auto;display:flex;align-items:center;gap:8px;justify-content:flex-end;flex-wrap:wrap;}
 
   .claimed-name{font-size:14px;font-weight:600;padding:6px 12px;border-radius:999px;background:var(--surface-2);}
@@ -105,10 +108,6 @@
   .btn.ghost{background:transparent;border-color:transparent;color:var(--ink-faint);padding:7px 10px;}
   .btn.ghost:hover{color:var(--danger);}
 
-  .claim-form{display:flex;align-items:center;gap:8px;}
-  .claim-form input{font-family:inherit;font-size:13px;border:1px solid var(--line-strong);border-radius:999px;padding:7px 12px;background:var(--surface);color:var(--ink);width:120px;}
-  .claim-form input:focus{outline:2px solid var(--cta);outline-offset:1px;}
-
   .empty-name{color:var(--ink-faint);font-size:13px;}
 
   dialog.modal{border:none;border-radius:var(--radius-md);padding:0;background:var(--surface);color:var(--ink);box-shadow:var(--shadow);max-width:300px;width:90%;}
@@ -117,6 +116,8 @@
   .modal-body h3{font-family:'Noto Serif TC',serif;font-size:16px;margin:0 0 10px;}
   .modal-body p{font-size:13px;color:var(--ink-soft);margin:0 0 14px;line-height:1.6;}
   .modal-actions{display:flex;justify-content:flex-end;gap:8px;}
+
+  .jump-today{position:fixed;right:20px;bottom:20px;font-family:inherit;font-size:13px;font-weight:600;border-radius:999px;padding:11px 18px;cursor:pointer;border:1px solid var(--cta);background:var(--cta);color:var(--cta-text);box-shadow:var(--shadow);}
 
   footer{margin-top:24px;font-size:12px;color:var(--ink-faint);text-align:center;}
 </style>
@@ -144,6 +145,8 @@
 
   <footer>資料即時同步至 Google 試算表・多人共用同一連結</footer>
 </div>
+
+<button class="jump-today" id="jumpToday" type="button" hidden>回到今天</button>
 
 <dialog id="claimDialog" class="modal">
   <form method="dialog" class="modal-body" id="claimForm">
@@ -177,8 +180,16 @@ var claimTitle = document.getElementById('claimTitle');
 var claimSub = document.getElementById('claimSub');
 var claimName = document.getElementById('claimName');
 var claimCancel = document.getElementById('claimCancel');
+var jumpTodayBtn = document.getElementById('jumpToday');
 
-var pendingRow = null; // {date, wd, shift, time, zone}
+var pendingRow = null; // {date, shift}
+
+function todayIso(){
+  var d = new Date();
+  var m = String(d.getMonth()+1).padStart(2,'0');
+  var day = String(d.getDate()).padStart(2,'0');
+  return d.getFullYear() + '-' + m + '-' + day;
+}
 
 function setStatus(kind, text){
   statusBar.className = 'status-bar' + (kind ? ' ' + kind : '');
@@ -188,9 +199,10 @@ function setStatus(kind, text){
 function groupByDate(rows){
   var map = {}, order = [];
   rows.forEach(function(r){
-    if (!map[r.date]) { map[r.date] = { date:r.date, wd:r.wd, stops:[] }; order.push(r.date); }
+    if (!map[r.date]) { map[r.date] = { date:r.date, dateLabel:r.dateLabel, stops:[] }; order.push(r.date); }
     map[r.date].stops.push(r);
   });
+  order.sort();
   return order.map(function(d){
     var g = map[d];
     g.stops.sort(function(a,b){ return SHIFT_META[a.shift].order - SHIFT_META[b.shift].order; });
@@ -199,8 +211,10 @@ function groupByDate(rows){
 }
 
 function render(rows){
+  var today = todayIso();
   var days = groupByDate(rows);
   daysEl.innerHTML = days.map(function(day){
+    var isToday = day.date === today;
     var slots = day.stops.map(function(s){
       var meta = SHIFT_META[s.shift] || {color:'var(--ink-faint)'};
       var stateHtml;
@@ -211,23 +225,25 @@ function render(rows){
       } else {
         stateHtml =
           '<span class="empty-name">尚未認領</span>' +
-          '<button class="btn primary" data-act="claim" data-date="' + s.date + '" data-shift="' + s.shift + '" data-zone="' + escapeAttr(s.zone) + '" data-time="' + escapeAttr(s.time) + '" data-wd="' + escapeAttr(day.wd) + '">認領</button>';
+          '<button class="btn primary" data-act="claim" data-date="' + s.date + '" data-shift="' + s.shift + '" data-time="' + escapeAttr(s.time) + '" data-label="' + escapeAttr(day.dateLabel) + '">認領</button>';
       }
       return (
         '<div class="slot-row">' +
           '<span class="slot-tag"><span class="swatch" style="background:' + meta.color + '"></span>' + s.shift + '<span class="t">' + s.time + '</span></span>' +
-          '<span class="slot-zone">' + escapeHtml(s.zone) + '</span>' +
           '<span class="slot-state">' + stateHtml + '</span>' +
         '</div>'
       );
     }).join('');
     return (
-      '<div class="day-card">' +
-        '<div class="day-head"><span class="d">' + day.date + '</span><span class="wd">週' + day.wd + '</span></div>' +
+      '<div class="day-card' + (isToday ? ' is-today' : '') + '" id="day-' + day.date + '">' +
+        '<div class="day-head"><span class="d">' + escapeHtml(day.dateLabel) + '</span>' + (isToday ? '<span class="today-badge">今天</span>' : '') + '</div>' +
         slots +
       '</div>'
     );
   }).join('');
+
+  var todayEl = document.getElementById('day-' + today);
+  jumpTodayBtn.hidden = !todayEl;
 }
 
 function escapeHtml(s){
@@ -237,14 +253,23 @@ function escapeHtml(s){
 }
 function escapeAttr(s){ return escapeHtml(s); }
 
+var lastRows = [];
+var didInitialScroll = false;
+
 function loadData(){
   setStatus('', '載入中…');
   fetch(API_URL, { method:'GET' })
     .then(function(res){ return res.json(); })
     .then(function(data){
       if (!data.ok) { setStatus('err', '載入失敗：' + (data.error || '未知錯誤')); return; }
-      render(data.rows);
+      lastRows = data.rows;
+      render(lastRows);
       setStatus('ok', '已同步');
+      if (!didInitialScroll) {
+        didInitialScroll = true;
+        var el = document.getElementById('day-' + todayIso());
+        if (el) el.scrollIntoView({ block:'start' });
+      }
     })
     .catch(function(err){
       setStatus('err', '無法連線至試算表，請確認網路連線或稍後再試');
@@ -258,7 +283,7 @@ daysEl.addEventListener('click', function(e){
   if (act === 'claim') {
     pendingRow = { date: btn.getAttribute('data-date'), shift: btn.getAttribute('data-shift') };
     claimTitle.textContent = '認領班次';
-    claimSub.textContent = btn.getAttribute('data-date') + '（週' + btn.getAttribute('data-wd') + '）' + btn.getAttribute('data-shift') + ' ' + btn.getAttribute('data-time') + ' － ' + btn.getAttribute('data-zone');
+    claimSub.textContent = btn.getAttribute('data-label') + ' ' + btn.getAttribute('data-shift') + ' ' + btn.getAttribute('data-time');
     claimName.value = '';
     dialog.showModal();
     setTimeout(function(){ claimName.focus(); }, 50);
@@ -281,6 +306,11 @@ claimForm.addEventListener('submit', function(e){
   pendingRow = null;
 });
 
+jumpTodayBtn.addEventListener('click', function(){
+  var el = document.getElementById('day-' + todayIso());
+  if (el) el.scrollIntoView({ block:'start', behavior:'smooth' });
+});
+
 function submitAction(payload, btnEl){
   if (btnEl) btnEl.disabled = true;
   setStatus('', '送出中…');
@@ -296,12 +326,14 @@ function submitAction(payload, btnEl){
         if (data.error === 'already_taken') msg = '這個班次剛被 ' + (data.takenBy || '別人') + ' 認領走了，畫面已更新';
         else if (data.error === 'name_mismatch') msg = '這個班次不是你認領的，無法取消';
         else if (data.error === 'busy_try_again') msg = '系統忙碌，請稍後再試一次';
+        else if (data.error === 'not_found') msg = '找不到這個日期的班次列，請確認試算表';
         else if (data.error) msg = '操作失敗：' + data.error;
         setStatus('err', msg);
         loadData();
         return;
       }
-      render(data.rows);
+      lastRows = data.rows;
+      render(lastRows);
       setStatus('ok', '已更新');
     })
     .catch(function(){
