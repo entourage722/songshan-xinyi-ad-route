@@ -143,11 +143,11 @@
 
   <div class="section-head">
     <h2>9 個次分區・逐里巡迴路線</h2>
-    <p class="lede">路線依台北市松山區公所／信義區公所公告的「里辦公處」地址排序，官方名冊本身即依次分區分段列出，故此排序已大致依地理相鄰順序排列。點「在 Google Maps 開啟路線」會依序帶入區內每個里的位置，實際道路與轉彎請以 Google Maps 導航為準；行車可依現場路況微調停靠順序。單一路線超過 8～9 站者已拆成「路段一／路段二」以避免超出 Google Maps 停靠站上限。點選上方日期，會標出當天早／中／晚班對應的三個次分區。</p>
+    <p class="lede">路線依台北市松山區公所／信義區公所公告的「里辦公處」地址排序，官方名冊本身即依次分區分段列出，故此排序已大致依地理相鄰順序排列。點「在 Google Maps 開啟路線」會依序帶入區內每個里的位置，實際道路與轉彎請以 Google Maps 導航為準；行車可依現場路況微調停靠順序。單一路線超過 8～9 站者已拆成「路段一／路段二」以避免超出 Google Maps 停靠站上限。點選上方日期，會標出當天早（10:00–12:00）／中（15:00–17:00）／晚（19:00–21:00）班對應的三個次分區。</p>
     <div class="shift-legend">
-      <span class="item"><span class="swatch" style="background:var(--shift-1)"></span>早班</span>
-      <span class="item"><span class="swatch" style="background:var(--shift-2)"></span>中班</span>
-      <span class="item"><span class="swatch" style="background:var(--shift-3)"></span>晚班</span>
+      <span class="item"><span class="swatch" style="background:var(--shift-1)"></span>早班 10:00–12:00</span>
+      <span class="item"><span class="swatch" style="background:var(--shift-2)"></span>中班 15:00–17:00</span>
+      <span class="item"><span class="swatch" style="background:var(--shift-3)"></span>晚班 19:00–21:00</span>
     </div>
   </div>
   <div class="zone-grid" id="zoneGrid"></div>
@@ -203,9 +203,9 @@
   var ZONE_ORDER = ["東社","三民","中崙","本鎮","三張犁","五分埔","福德","吳興","六張犁"];
 
   var SHIFT_META = {
-    '早班': {color:'var(--shift-1)'},
-    '中班': {color:'var(--shift-2)'},
-    '晚班': {color:'var(--shift-3)'}
+    '早班': {color:'var(--shift-1)', time:'10:00–12:00'},
+    '中班': {color:'var(--shift-2)', time:'15:00–17:00'},
+    '晚班': {color:'var(--shift-3)', time:'19:00–21:00'}
   };
 
   var SCHEDULE = [
@@ -281,7 +281,7 @@
     btn.className = 'day-btn';
     btn.setAttribute('aria-pressed', i === 0 ? 'true' : 'false');
     btn.innerHTML = '<span class="d">'+day.date+'</span><span class="w">('+day.wd+')</span><div class="dots">' +
-      day.stops.map(function(s){ return '<span style="background:'+SHIFT_META[s.shift].color+'"></span>'; }).join('') +
+      day.stops.map(function(s){ return '<span title="'+s.shift+' '+SHIFT_META[s.shift].time+' '+s.zone+'" style="background:'+SHIFT_META[s.shift].color+'"></span>'; }).join('') +
       '</div>';
     btn.addEventListener('click', function(){ selectDay(i); });
     dayStrip.appendChild(btn);
@@ -297,7 +297,7 @@
     todayBar.innerHTML = '<span class="lbl">'+day.date+'（星期'+day.wd+'）今日路線</span>' + day.stops.map(function(s, idx){
       var meta = SHIFT_META[s.shift];
       return (idx>0 ? '<span class="arrow">→</span>' : '') +
-        '<span class="chip"><span class="sw" style="background:'+meta.color+'"></span>'+s.shift+' '+s.zone+'（'+ZONE_DATA[s.zone].district+'）</span>';
+        '<span class="chip"><span class="sw" style="background:'+meta.color+'"></span>'+s.shift+'（'+meta.time+'） '+s.zone+'（'+ZONE_DATA[s.zone].district+'）</span>';
     }).join('');
 
     ZONE_ORDER.forEach(function(name){
@@ -311,7 +311,7 @@
         var b = document.createElement('span');
         b.className = 'active-badge';
         b.style.background = meta.color;
-        b.textContent = day.date + ' ' + stop.shift;
+        b.textContent = day.date + ' ' + stop.shift + '（' + meta.time + '）';
         card.appendChild(b);
       } else {
         card.dataset.active = 'false';
