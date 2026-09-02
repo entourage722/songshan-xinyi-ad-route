@@ -255,23 +255,66 @@ function escapeAttr(s){ return escapeHtml(s); }
 
 var lastRows = [];
 var didInitialScroll = false;
+var CACHE_KEY = 'fillshift_cache_v1';
+
+function readCache(){
+  try {
+    var raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    var parsed = JSON.parse(raw);
+    if (!parsed || !Array.isArray(parsed.rows)) return null;
+    return parsed;
+  } catch (e) { return null; }
+}
+
+function writeCache(rows){
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ rows: rows, ts: Date.now() }));
+  } catch (e) { /* ignore, e.g. private mode */ }
+}
+
+function scrollToTodayOnce(){
+  if (didInitialScroll) return;
+  didInitialScroll = true;
+  var el = document.getElementById('day-' + todayIso());
+  if (el) el.scrollIntoView({ block:'start' });
+}
 
 function loadData(){
-  setStatus('', '載入中…');
+  var cached = readCache();
+  var slowTimer = null;
+
+  if (cached) {
+    lastRows = cached.rows;
+    render(lastRows);
+    setStatus('', '正在更新最新資料…');
+    scrollToTodayOnce();
+  } else {
+    setStatus('', '載入中…');
+    // Google 試算表連線第一次通常要幾秒鐘，久一點是正常的
+    slowTimer = setTimeout(function(){
+      setStatus('', '連線 Google 試算表中，請再稍候…');
+    }, 3000);
+  }
+
   fetch(API_URL, { method:'GET' })
     .then(function(res){ return res.json(); })
     .then(function(data){
-      if (!data.ok) { setStatus('err', '載入失敗：' + (data.error || '未知錯誤')); return; }
+      if (slowTimer) clearTimeout(slowTimer);
+      if (!data.ok) {
+        if (cached) { setStatus('err', '更新失敗，目前顯示的是上次同步的資料'); return; }
+        setStatus('err', '載入失敗：' + (data.error || '未知錯誤'));
+        return;
+      }
       lastRows = data.rows;
+      writeCache(lastRows);
       render(lastRows);
       setStatus('ok', '已同步');
-      if (!didInitialScroll) {
-        didInitialScroll = true;
-        var el = document.getElementById('day-' + todayIso());
-        if (el) el.scrollIntoView({ block:'start' });
-      }
+      scrollToTodayOnce();
     })
     .catch(function(err){
+      if (slowTimer) clearTimeout(slowTimer);
+      if (cached) { setStatus('err', '更新失敗，目前顯示的是上次同步的資料'); return; }
       setStatus('err', '無法連線至試算表，請確認網路連線或稍後再試');
     });
 }
@@ -333,6 +376,7 @@ function submitAction(payload, btnEl){
         return;
       }
       lastRows = data.rows;
+      writeCache(lastRows);
       render(lastRows);
       setStatus('ok', '已更新');
     })
