@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>填班表 — 松信廣告車巡迴</title>
+<meta name="description" content="松山・信義廣告車巡迴路線，班次認領表">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;700&family=Noto+Sans+TC:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+  :root{
+    color-scheme: light;
+    --bg:#F0F2EA;
+    --surface:#FFFFFF;
+    --surface-2:#E7EBDF;
+    --ink:#1D2118;
+    --ink-soft:#565F4C;
+    --ink-faint:#8A9179;
+    --line:#C3CAB4;
+    --line-strong:#9FA88C;
+    --songshan-tint-strong:#B9CB9E;
+    --songshan-text:#4B5E36;
+    --xinyi-tint-strong:#DDC08A;
+    --xinyi-text:#7A5A22;
+    --cta:#2a5c4a;
+    --cta-text:#F4F7F1;
+    --shift-1:#2a78d6; /* 早班 */
+    --shift-2:#eb6834; /* 中班 */
+    --shift-3:#1baf7a; /* 晚班 */
+    --radius-lg:20px;
+    --radius-md:14px;
+    --radius-sm:9px;
+    --shadow: 0 1px 2px rgba(29,33,24,0.06), 0 10px 28px -14px rgba(29,33,24,0.28);
+    --danger:#B3432B;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      color-scheme: dark;
+      --bg:#14160F; --surface:#1B1E15; --surface-2:#242818;
+      --ink:#ECEEE3; --ink-soft:#B7BEA6; --ink-faint:#7C8468;
+      --line:#3A4030; --line-strong:#4E5740;
+      --songshan-tint-strong:#3B4C28; --songshan-text:#B7D69A;
+      --xinyi-tint-strong:#544117; --xinyi-text:#E3BE72;
+      --cta:#3FA080; --cta-text:#0E1410;
+      --shift-1:#3987e5; --shift-2:#d95926; --shift-3:#199e70;
+      --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 10px 28px -14px rgba(0,0,0,0.6);
+      --danger:#D9714F;
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme: dark;
+    --bg:#14160F; --surface:#1B1E15; --surface-2:#242818;
+    --ink:#ECEEE3; --ink-soft:#B7BEA6; --ink-faint:#7C8468;
+    --line:#3A4030; --line-strong:#4E5740;
+    --songshan-tint-strong:#3B4C28; --songshan-text:#B7D69A;
+    --xinyi-tint-strong:#544117; --xinyi-text:#E3BE72;
+    --cta:#3FA080; --cta-text:#0E1410;
+    --shift-1:#3987e5; --shift-2:#d95926; --shift-3:#199e70;
+    --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 10px 28px -14px rgba(0,0,0,0.6);
+    --danger:#D9714F;
+  }
+
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif;}
+  .page{max-width:920px;margin:0 auto;padding:28px 20px 64px;}
+  h1,h2{font-family:'Noto Serif TC','Songti TC',serif;font-weight:700;margin:0;text-wrap:balance;}
+  .mono{font-family:'IBM Plex Mono',ui-monospace,'SF Mono',monospace;}
+  a{color:inherit;}
+
+  header.hero{display:flex;flex-direction:column;gap:8px;margin-bottom:22px;}
+  .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);}
+  header.hero h1{font-size:clamp(22px,3.4vw,30px);}
+  header.hero p{margin:0;color:var(--ink-soft);font-size:14px;line-height:1.6;}
+  .back-link{font-size:13px;color:var(--ink-faint);text-decoration:none;display:inline-flex;align-items:center;gap:4px;margin-bottom:6px;}
+  .back-link:hover{color:var(--ink);}
+
+  .legend{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:20px;font-size:13px;color:var(--ink-soft);}
+  .legend .item{display:inline-flex;align-items:center;gap:6px;}
+  .legend .swatch{width:11px;height:11px;border-radius:4px;display:inline-block;}
+
+  .status-bar{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--radius-sm);background:var(--surface-2);color:var(--ink-soft);font-size:13px;margin-bottom:20px;min-height:20px;}
+  .status-bar.err{background:rgba(179,67,43,0.12);color:var(--danger);}
+  .status-dot{width:8px;height:8px;border-radius:50%;background:var(--ink-faint);flex:0 0 auto;}
+  .status-bar.ok .status-dot{background:var(--cta);}
+  .status-bar.err .status-dot{background:var(--danger);}
+
+  .day-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);box-shadow:var(--shadow);padding:16px 18px;margin-bottom:14px;}
+  .day-card .day-head{display:flex;align-items:baseline;gap:8px;margin-bottom:12px;}
+  .day-card .day-head .d{font-family:'Noto Serif TC',serif;font-weight:700;font-size:17px;}
+  .day-card .day-head .wd{color:var(--ink-faint);font-size:13px;}
+
+  .slot-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line);}
+  .slot-row:first-of-type{border-top:none;}
+  .slot-tag{flex:0 0 auto;display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;min-width:150px;}
+  .slot-tag .swatch{width:10px;height:10px;border-radius:3px;display:inline-block;}
+  .slot-tag .t{color:var(--ink-faint);font-weight:400;font-family:'IBM Plex Mono',monospace;font-size:11.5px;}
+  .slot-zone{flex:0 0 auto;font-size:13px;color:var(--ink-soft);min-width:64px;}
+  .slot-state{flex:1 1 auto;display:flex;align-items:center;gap:8px;justify-content:flex-end;flex-wrap:wrap;}
+
+  .claimed-name{font-size:14px;font-weight:600;padding:6px 12px;border-radius:999px;background:var(--surface-2);}
+  .btn{font-family:inherit;font-size:13px;font-weight:600;border-radius:999px;padding:7px 15px;cursor:pointer;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);}
+  .btn:hover{border-color:var(--ink-soft);}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
+  .btn.primary{background:var(--cta);color:var(--cta-text);border-color:var(--cta);}
+  .btn.ghost{background:transparent;border-color:transparent;color:var(--ink-faint);padding:7px 10px;}
+  .btn.ghost:hover{color:var(--danger);}
+
+  .claim-form{display:flex;align-items:center;gap:8px;}
+  .claim-form input{font-family:inherit;font-size:13px;border:1px solid var(--line-strong);border-radius:999px;padding:7px 12px;background:var(--surface);color:var(--ink);width:120px;}
+  .claim-form input:focus{outline:2px solid var(--cta);outline-offset:1px;}
+
+  .empty-name{color:var(--ink-faint);font-size:13px;}
+
+  dialog.modal{border:none;border-radius:var(--radius-md);padding:0;background:var(--surface);color:var(--ink);box-shadow:var(--shadow);max-width:300px;width:90%;}
+  dialog.modal::backdrop{background:rgba(0,0,0,0.4);}
+  .modal-body{padding:18px 20px;}
+  .modal-body h3{font-family:'Noto Serif TC',serif;font-size:16px;margin:0 0 10px;}
+  .modal-body p{font-size:13px;color:var(--ink-soft);margin:0 0 14px;line-height:1.6;}
+  .modal-actions{display:flex;justify-content:flex-end;gap:8px;}
+
+  footer{margin-top:24px;font-size:12px;color:var(--ink-faint);text-align:center;}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <a class="back-link" href="./index.html">← 回到路線地圖</a>
+
+  <header class="hero">
+    <span class="eyebrow">松山・信義廣告車巡迴</span>
+    <h1>班次填班表</h1>
+    <p>點選想認領的班次並輸入司機姓名即可。每個班次僅能有一人認領，若填錯可自行取消。</p>
+  </header>
+
+  <div class="legend">
+    <span class="item"><span class="swatch" style="background:var(--shift-1)"></span>早班 10:00–12:00</span>
+    <span class="item"><span class="swatch" style="background:var(--shift-2)"></span>中班 15:00–17:00</span>
+    <span class="item"><span class="swatch" style="background:var(--shift-3)"></span>晚班 19:00–21:00</span>
+  </div>
+
+  <div id="statusBar" class="status-bar"><span class="status-dot"></span><span id="statusText">連線中…</span></div>
+
+  <div id="days"></div>
+
+  <footer>資料即時同步至 Google 試算表・多人共用同一連結</footer>
+</div>
+
+<dialog id="claimDialog" class="modal">
+  <form method="dialog" class="modal-body" id="claimForm">
+    <h3 id="claimTitle">認領班次</h3>
+    <p id="claimSub"></p>
+    <input type="text" id="claimName" placeholder="司機姓名" maxlength="20" style="width:100%;font-family:inherit;font-size:14px;border:1px solid var(--line-strong);border-radius:var(--radius-sm);padding:9px 12px;background:var(--surface);color:var(--ink);margin-bottom:14px;">
+    <div class="modal-actions">
+      <button type="button" class="btn" id="claimCancel">取消</button>
+      <button type="submit" class="btn primary" id="claimConfirm">確認</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+// ==== 設定：貼上 Google Apps Script 網頁應用程式 URL ====
+var API_URL = 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
+// ==========================================================
+
+var SHIFT_META = {
+  '早班': {color:'var(--shift-1)', order:0},
+  '中班': {color:'var(--shift-2)', order:1},
+  '晚班': {color:'var(--shift-3)', order:2}
+};
+
+var statusBar = document.getElementById('statusBar');
+var statusText = document.getElementById('statusText');
+var daysEl = document.getElementById('days');
+var dialog = document.getElementById('claimDialog');
+var claimForm = document.getElementById('claimForm');
+var claimTitle = document.getElementById('claimTitle');
+var claimSub = document.getElementById('claimSub');
+var claimName = document.getElementById('claimName');
+var claimCancel = document.getElementById('claimCancel');
+
+var pendingRow = null; // {date, wd, shift, time, zone}
+
+function setStatus(kind, text){
+  statusBar.className = 'status-bar' + (kind ? ' ' + kind : '');
+  statusText.textContent = text;
+}
+
+function groupByDate(rows){
+  var map = {}, order = [];
+  rows.forEach(function(r){
+    if (!map[r.date]) { map[r.date] = { date:r.date, wd:r.wd, stops:[] }; order.push(r.date); }
+    map[r.date].stops.push(r);
+  });
+  return order.map(function(d){
+    var g = map[d];
+    g.stops.sort(function(a,b){ return SHIFT_META[a.shift].order - SHIFT_META[b.shift].order; });
+    return g;
+  });
+}
+
+function render(rows){
+  var days = groupByDate(rows);
+  daysEl.innerHTML = days.map(function(day){
+    var slots = day.stops.map(function(s){
+      var meta = SHIFT_META[s.shift] || {color:'var(--ink-faint)'};
+      var stateHtml;
+      if (s.name) {
+        stateHtml =
+          '<span class="claimed-name">' + escapeHtml(s.name) + '</span>' +
+          '<button class="btn ghost" data-act="clear" data-date="' + s.date + '" data-shift="' + s.shift + '" data-name="' + escapeAttr(s.name) + '">取消</button>';
+      } else {
+        stateHtml =
+          '<span class="empty-name">尚未認領</span>' +
+          '<button class="btn primary" data-act="claim" data-date="' + s.date + '" data-shift="' + s.shift + '" data-zone="' + escapeAttr(s.zone) + '" data-time="' + escapeAttr(s.time) + '" data-wd="' + escapeAttr(day.wd) + '">認領</button>';
+      }
+      return (
+        '<div class="slot-row">' +
+          '<span class="slot-tag"><span class="swatch" style="background:' + meta.color + '"></span>' + s.shift + '<span class="t">' + s.time + '</span></span>' +
+          '<span class="slot-zone">' + escapeHtml(s.zone) + '</span>' +
+          '<span class="slot-state">' + stateHtml + '</span>' +
+        '</div>'
+      );
+    }).join('');
+    return (
+      '<div class="day-card">' +
+        '<div class="day-head"><span class="d">' + day.date + '</span><span class="wd">週' + day.wd + '</span></div>' +
+        slots +
+      '</div>'
+    );
+  }).join('');
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+function escapeAttr(s){ return escapeHtml(s); }
+
+function loadData(){
+  setStatus('', '載入中…');
+  fetch(API_URL, { method:'GET' })
+    .then(function(res){ return res.json(); })
+    .then(function(data){
+      if (!data.ok) { setStatus('err', '載入失敗：' + (data.error || '未知錯誤')); return; }
+      render(data.rows);
+      setStatus('ok', '已同步');
+    })
+    .catch(function(err){
+      setStatus('err', '無法連線至試算表，請確認網路連線或稍後再試');
+    });
+}
+
+daysEl.addEventListener('click', function(e){
+  var btn = e.target.closest('button[data-act]');
+  if (!btn) return;
+  var act = btn.getAttribute('data-act');
+  if (act === 'claim') {
+    pendingRow = { date: btn.getAttribute('data-date'), shift: btn.getAttribute('data-shift') };
+    claimTitle.textContent = '認領班次';
+    claimSub.textContent = btn.getAttribute('data-date') + '（週' + btn.getAttribute('data-wd') + '）' + btn.getAttribute('data-shift') + ' ' + btn.getAttribute('data-time') + ' － ' + btn.getAttribute('data-zone');
+    claimName.value = '';
+    dialog.showModal();
+    setTimeout(function(){ claimName.focus(); }, 50);
+  } else if (act === 'clear') {
+    var date = btn.getAttribute('data-date'), shift = btn.getAttribute('data-shift'), name = btn.getAttribute('data-name');
+    if (!confirm('確定要取消「' + name + '」在 ' + date + ' ' + shift + ' 的班次嗎？')) return;
+    submitAction({ date:date, shift:shift, name:name, action:'clear' }, btn);
+  }
+});
+
+claimCancel.addEventListener('click', function(){ dialog.close(); pendingRow = null; });
+
+claimForm.addEventListener('submit', function(e){
+  e.preventDefault();
+  var name = claimName.value.trim();
+  if (!name) { claimName.focus(); return; }
+  if (!pendingRow) { dialog.close(); return; }
+  dialog.close();
+  submitAction({ date: pendingRow.date, shift: pendingRow.shift, name: name, action:'claim' });
+  pendingRow = null;
+});
+
+function submitAction(payload, btnEl){
+  if (btnEl) btnEl.disabled = true;
+  setStatus('', '送出中…');
+  fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // 避免 CORS 預檢
+    body: JSON.stringify(payload)
+  })
+    .then(function(res){ return res.json(); })
+    .then(function(data){
+      if (!data.ok) {
+        var msg = '操作失敗';
+        if (data.error === 'already_taken') msg = '這個班次剛被 ' + (data.takenBy || '別人') + ' 認領走了，畫面已更新';
+        else if (data.error === 'name_mismatch') msg = '這個班次不是你認領的，無法取消';
+        else if (data.error === 'busy_try_again') msg = '系統忙碌，請稍後再試一次';
+        else if (data.error) msg = '操作失敗：' + data.error;
+        setStatus('err', msg);
+        loadData();
+        return;
+      }
+      render(data.rows);
+      setStatus('ok', '已更新');
+    })
+    .catch(function(){
+      setStatus('err', '網路異常，請稍後再試');
+    });
+}
+
+if (API_URL.indexOf('PASTE_YOUR') === 0) {
+  setStatus('err', '尚未設定 Google Sheet 連結，請聯絡管理員設定 API_URL');
+} else {
+  loadData();
+}
+</script>
+</body>
+</html>
