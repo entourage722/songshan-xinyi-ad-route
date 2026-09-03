@@ -241,7 +241,8 @@ function render(rows){
       );
     }).join('');
 
-    var metaText = loc.dates.length + ' 個日期・' + filledTotal + '/' + slotTotal + ' 已登記';
+    var dateLabels = loc.dates.map(function(s){ return s.dateLabel; }).join('、');
+    var metaText = escapeHtml(dateLabels) + '・' + filledTotal + '/' + slotTotal + ' 已登記';
     return (
       '<details class="loc-card" id="loc-' + escapeAttr(loc.location) + '" data-loc-name="' + escapeAttr(loc.location) + '">' +
         '<summary>' +
