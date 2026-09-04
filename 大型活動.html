@@ -133,7 +133,7 @@
 
   <header class="hero">
     <h1>大型活動</h1>
-    <p>先找到活動名稱，點開即可看到該活動的日期與地點。每個日期最多 10 人，點「+ 填入姓名」登記，填錯可點姓名旁的 × 取消。</p>
+    <p>先找到活動名稱，點開即可看到該活動的日期與地點。每個日期最多 30 人，點「+ 填入姓名」登記，填錯可點姓名旁的 × 取消。</p>
   </header>
 
   <div id="statusBar" class="status-bar"><span class="status-dot"></span><span id="statusText">連線中…</span></div>
@@ -165,7 +165,7 @@
 // ==== Google Apps Script 網頁應用程式 URL ====
 var API_URL = 'https://script.google.com/macros/s/AKfycbzMlU1JFPs0-dbhXBBsJXsyyuuiCp09DKaJLitV1QpNe9a0L1mR9Ub2s2tTGhd5xgrGDg/exec';
 var SHIFT_TYPE = 'event';
-var MAX_SLOTS = 10; // 大型活動最多可登記 10 人
+var MAX_SLOTS = 30; // 大型活動最多可登記 30 人
 // ==============================================
 
 var statusBar = document.getElementById('statusBar');
@@ -205,8 +205,21 @@ function groupByTitle(rows){
   return order.map(function(key){
     var g = map[key];
     g.dates.sort(function(a,b){ return a.date.localeCompare(b.date); });
+    g.dates = mergeSameDate(g.dates);
     return g;
   });
+}
+
+// 同一個活動、同一個日期如果在試算表裡有多列（例如報名人數超過單列上限時手動加的第二列），
+// 畫面上合併成同一個日期只顯示一次；姓名、地點、時間都會合併顯示，
+// 但每個姓名仍記得自己原本是哪一列（哪個地點），取消登記時才能正確對應回試算表的那一列。
+function mergeSameDate(rows){
+  var map = {}, order = [];
+  rows.forEach(function(r){
+    if (!map[r.date]) { map[r.date] = { date:r.date, dateLabel:r.dateLabel, rows:[] }; order.push(r.date); }
+    map[r.date].rows.push(r);
+  });
+  return order.map(function(d){ return map[d]; });
 }
 
 function render(rows){
@@ -220,32 +233,55 @@ function render(rows){
 
   locsEl.innerHTML = groups.map(function(g){
     var filledTotal = 0, slotTotal = 0, hasToday = false;
-    var dateRows = g.dates.map(function(s){
-      var names = s.names || [];
-      var filled = names.filter(function(n){ return n && String(n).trim(); });
-      var count = filled.length;
-      var full = count >= MAX_SLOTS;
-      filledTotal += count; slotTotal += MAX_SLOTS;
-      var isToday = s.date === today;
+    var dateRows = g.dates.map(function(m){
+      var rowsArr = m.rows;
+      var named = [];
+      rowsArr.forEach(function(rw){
+        (rw.names || []).forEach(function(n){
+          if (n && String(n).trim()) named.push({ name:n, date:rw.date, location:rw.location });
+        });
+      });
+      var count = named.length;
+      var rowSlotTotal = MAX_SLOTS * rowsArr.length;
+      var full = rowsArr.every(function(rw){
+        var f = (rw.names || []).filter(function(n){ return n && String(n).trim(); }).length;
+        return f >= MAX_SLOTS;
+      });
+      filledTotal += count; slotTotal += rowSlotTotal;
+      var isToday = m.date === today;
       if (isToday) hasToday = true;
-      var chips = filled.map(function(n){
-        return '<span class="claimed-name">' + escapeHtml(n) +
-          '<button class="btn ghost" type="button" data-act="clear" data-date="' + s.date + '" data-location="' + escapeAttr(s.location) + '" data-name="' + escapeAttr(n) + '" aria-label="取消 ' + escapeAttr(n) + '">×</button></span>';
+      var chips = named.map(function(item){
+        return '<span class="claimed-name">' + escapeHtml(item.name) +
+          '<button class="btn ghost" type="button" data-act="clear" data-date="' + item.date + '" data-location="' + escapeAttr(item.location) + '" data-name="' + escapeAttr(item.name) + '" aria-label="取消 ' + escapeAttr(item.name) + '">×</button></span>';
       }).join('');
-      var addBtn = full ? '' :
-        '<button class="btn primary add" type="button" data-act="fill" data-date="' + s.date + '" data-location="' + escapeAttr(s.location) + '" data-label="' + escapeAttr(s.dateLabel) + '">+ 填入姓名</button>';
-      var timeHtml = (s.start && s.end) ? ('<span class="dr-time">' + s.start + '–' + s.end + '</span>') : '';
-      var locHtml = s.location ? ('<span class="dr-loc">📍' + escapeHtml(s.location) + '</span>') : '';
+      var targetRow = null;
+      for (var i = 0; i < rowsArr.length; i++) {
+        var f2 = (rowsArr[i].names || []).filter(function(n){ return n && String(n).trim(); }).length;
+        if (f2 < MAX_SLOTS) { targetRow = rowsArr[i]; break; }
+      }
+      var addBtn = !targetRow ? '' :
+        '<button class="btn primary add" type="button" data-act="fill" data-date="' + targetRow.date + '" data-location="' + escapeAttr(targetRow.location) + '" data-label="' + escapeAttr(m.dateLabel) + '">+ 填入姓名</button>';
+      var locs = [];
+      rowsArr.forEach(function(rw){ if (rw.location && locs.indexOf(rw.location) === -1) locs.push(rw.location); });
+      var locHtml = locs.length ? ('<span class="dr-loc">📍' + escapeHtml(locs.join('、')) + '</span>') : '';
+      var times = [];
+      rowsArr.forEach(function(rw){
+        if (rw.start && rw.end) {
+          var t = rw.start + '–' + rw.end;
+          if (times.indexOf(t) === -1) times.push(t);
+        }
+      });
+      var timeHtml = times.length ? ('<span class="dr-time">' + times.join('、') + '</span>') : '';
       return (
-        '<div class="date-row' + (isToday ? ' is-today' : '') + '" id="row-' + escapeAttr(s.location) + '-' + s.date + '">' +
-          '<div class="dr-head"><span class="dr-date">' + escapeHtml(s.dateLabel) + '</span>' + locHtml + timeHtml + (isToday ? '<span class="today-badge">今天</span>' : '') +
-            '<span class="dr-count' + (full ? ' full' : '') + '">' + count + '/' + MAX_SLOTS + '</span></div>' +
+        '<div class="date-row' + (isToday ? ' is-today' : '') + '" id="row-' + escapeAttr(rowsArr[0].location) + '-' + m.date + '">' +
+          '<div class="dr-head"><span class="dr-date">' + escapeHtml(m.dateLabel) + '</span>' + locHtml + timeHtml + (isToday ? '<span class="today-badge">今天</span>' : '') +
+            '<span class="dr-count' + (full ? ' full' : '') + '">' + count + '/' + rowSlotTotal + '</span></div>' +
           '<div class="name-list">' + chips + addBtn + '</div>' +
         '</div>'
       );
     }).join('');
 
-    var dateLabels = g.dates.map(function(s){ return s.dateLabel; }).join('、');
+    var dateLabels = g.dates.map(function(m){ return m.dateLabel; }).join('、');
     var metaText = escapeHtml(dateLabels) + '・' + filledTotal + '/' + slotTotal + ' 已登記';
     return (
       '<details class="loc-card" id="loc-' + escapeAttr(g.title) + '" data-loc-name="' + escapeAttr(g.title) + '">' +
