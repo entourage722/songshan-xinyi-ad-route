@@ -445,10 +445,20 @@
         map[r.location].dates.push(r);
       });
 
+      // 將 "9/7" 或 "2026-9-7" 中的單個數字補齊為雙位數 "09/07"，避免 ASCII/localeCompare 排序錯誤
+      var toSortableDate = function(dStr) {
+        if (!dStr) return '';
+        return dStr.replace(/\d+/g, function(num) {
+          return num.length === 1 ? '0' + num : num;
+        });
+      };
+
       var groups = order.map(function(loc){
         var g = map[loc];
         // 先對該地點內的所有日期排序
-        g.dates.sort(function(a,b){ return (a.date || '').localeCompare(b.date || ''); });
+        g.dates.sort(function(a, b){ 
+          return toSortableDate(a.date).localeCompare(toSortableDate(b.date)); 
+        });
         
         // 確保 minDate 是該地點「最早」的那一個日期
         if (g.dates.length > 0) {
@@ -459,13 +469,8 @@
 
       // 依每個地點最早的排班日期排序（日期相同時再依地點名稱排序）
       groups.sort(function(a, b) {
-        var normalize = function(dStr) {
-          if (!dStr) return '';
-          return dStr.replace(/\b\d\b/g, '0$&');
-        };
-
-        var dateA = normalize(a.minDate);
-        var dateB = normalize(b.minDate);
+        var dateA = toSortableDate(a.minDate);
+        var dateB = toSortableDate(b.minDate);
 
         if (dateA !== dateB) return dateA.localeCompare(dateB);
         return a.location.localeCompare(b.location, 'zh-Hant');
