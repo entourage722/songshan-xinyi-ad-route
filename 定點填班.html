@@ -197,12 +197,19 @@ function groupByLocation(rows){
     if (!map[r.location]) { map[r.location] = { location:r.location, dates:[] }; order.push(r.location); }
     map[r.location].dates.push(r);
   });
-  order.sort(function(a,b){ return a.localeCompare(b, 'zh-Hant'); });
-  return order.map(function(loc){
+  var groups = order.map(function(loc){
     var g = map[loc];
     g.dates.sort(function(a,b){ return a.date.localeCompare(b.date); });
     return g;
   });
+  // 依地點「最早的排班日期」由近到遠排序（而不是依地點名稱），同一天則用地點名稱排序
+  groups.sort(function(a,b){
+    var da = a.dates[0] ? a.dates[0].date : '';
+    var db = b.dates[0] ? b.dates[0].date : '';
+    if (da !== db) return da.localeCompare(db);
+    return a.location.localeCompare(b.location, 'zh-Hant');
+  });
+  return groups;
 }
 
 function render(rows){
