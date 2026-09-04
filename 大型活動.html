@@ -97,6 +97,7 @@
   .dr-head{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:9px;}
   .dr-date{font-size:14px;font-weight:600;}
   .dr-time{color:var(--ink-faint);font-weight:400;font-family:'IBM Plex Mono',monospace;font-size:11.5px;}
+  .dr-loc{font-size:11.5px;color:var(--ink-soft);background:var(--surface-2);padding:2px 9px;border-radius:999px;}
   .today-badge{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;background:var(--today-ring);color:var(--cta-text);padding:2px 8px;border-radius:999px;}
   .dr-count{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-faint);padding:2px 8px;border-radius:999px;background:var(--surface-2);}
   .dr-count.full{background:var(--full-tint);color:var(--full-text);}
@@ -132,13 +133,13 @@
 
   <header class="hero">
     <h1>大型活動</h1>
-    <p>先找到活動地點，點開即可看到該地點的排班日期。每個日期最多 4 人，點「+ 填入姓名」登記，填錯可點姓名旁的 × 取消。</p>
+    <p>先找到活動名稱，點開即可看到該活動的日期與地點。每個日期最多 10 人，點「+ 填入姓名」登記，填錯可點姓名旁的 × 取消。</p>
   </header>
 
   <div id="statusBar" class="status-bar"><span class="status-dot"></span><span id="statusText">連線中…</span></div>
 
   <div class="search-wrap">
-    <input type="text" id="locSearch" class="search-input" placeholder="🔍 搜尋活動地點…">
+    <input type="text" id="locSearch" class="search-input" placeholder="🔍 搜尋活動名稱…">
   </div>
 
   <div id="locs"></div>
@@ -164,6 +165,7 @@
 // ==== Google Apps Script 網頁應用程式 URL ====
 var API_URL = 'https://script.google.com/macros/s/AKfycbzMlU1JFPs0-dbhXBBsJXsyyuuiCp09DKaJLitV1QpNe9a0L1mR9Ub2s2tTGhd5xgrGDg/exec';
 var SHIFT_TYPE = 'event';
+var MAX_SLOTS = 10; // 大型活動最多可登記 10 人
 // ==============================================
 
 var statusBar = document.getElementById('statusBar');
@@ -192,15 +194,16 @@ function setStatus(kind, text){
   statusText.textContent = text;
 }
 
-function groupByLocation(rows){
+function groupByTitle(rows){
   var map = {}, order = [];
   rows.forEach(function(r){
-    if (!map[r.location]) { map[r.location] = { location:r.location, dates:[] }; order.push(r.location); }
-    map[r.location].dates.push(r);
+    var key = (r.title && String(r.title).trim()) || r.location;
+    if (!map[key]) { map[key] = { title:key, dates:[] }; order.push(key); }
+    map[key].dates.push(r);
   });
   order.sort(function(a,b){ return a.localeCompare(b, 'zh-Hant'); });
-  return order.map(function(loc){
-    var g = map[loc];
+  return order.map(function(key){
+    var g = map[key];
     g.dates.sort(function(a,b){ return a.date.localeCompare(b.date); });
     return g;
   });
@@ -213,16 +216,16 @@ function render(rows){
     return;
   }
   var today = todayIso();
-  var locs = groupByLocation(rows);
+  var groups = groupByTitle(rows);
 
-  locsEl.innerHTML = locs.map(function(loc){
+  locsEl.innerHTML = groups.map(function(g){
     var filledTotal = 0, slotTotal = 0, hasToday = false;
-    var dateRows = loc.dates.map(function(s){
+    var dateRows = g.dates.map(function(s){
       var names = s.names || [];
       var filled = names.filter(function(n){ return n && String(n).trim(); });
       var count = filled.length;
-      var full = count >= 4;
-      filledTotal += count; slotTotal += 4;
+      var full = count >= MAX_SLOTS;
+      filledTotal += count; slotTotal += MAX_SLOTS;
       var isToday = s.date === today;
       if (isToday) hasToday = true;
       var chips = filled.map(function(n){
@@ -232,22 +235,23 @@ function render(rows){
       var addBtn = full ? '' :
         '<button class="btn primary add" type="button" data-act="fill" data-date="' + s.date + '" data-location="' + escapeAttr(s.location) + '" data-label="' + escapeAttr(s.dateLabel) + '">+ 填入姓名</button>';
       var timeHtml = (s.start && s.end) ? ('<span class="dr-time">' + s.start + '–' + s.end + '</span>') : '';
+      var locHtml = s.location ? ('<span class="dr-loc">📍' + escapeHtml(s.location) + '</span>') : '';
       return (
         '<div class="date-row' + (isToday ? ' is-today' : '') + '" id="row-' + escapeAttr(s.location) + '-' + s.date + '">' +
-          '<div class="dr-head"><span class="dr-date">' + escapeHtml(s.dateLabel) + '</span>' + timeHtml + (isToday ? '<span class="today-badge">今天</span>' : '') +
-            '<span class="dr-count' + (full ? ' full' : '') + '">' + count + '/4</span></div>' +
+          '<div class="dr-head"><span class="dr-date">' + escapeHtml(s.dateLabel) + '</span>' + locHtml + timeHtml + (isToday ? '<span class="today-badge">今天</span>' : '') +
+            '<span class="dr-count' + (full ? ' full' : '') + '">' + count + '/' + MAX_SLOTS + '</span></div>' +
           '<div class="name-list">' + chips + addBtn + '</div>' +
         '</div>'
       );
     }).join('');
 
-    var dateLabels = loc.dates.map(function(s){ return s.dateLabel; }).join('、');
+    var dateLabels = g.dates.map(function(s){ return s.dateLabel; }).join('、');
     var metaText = escapeHtml(dateLabels) + '・' + filledTotal + '/' + slotTotal + ' 已登記';
     return (
-      '<details class="loc-card" id="loc-' + escapeAttr(loc.location) + '" data-loc-name="' + escapeAttr(loc.location) + '">' +
+      '<details class="loc-card" id="loc-' + escapeAttr(g.title) + '" data-loc-name="' + escapeAttr(g.title) + '">' +
         '<summary>' +
           '<span class="chev">▶</span>' +
-          '<span class="loc-title-wrap"><span class="loc-title">' + escapeHtml(loc.location) + '</span>' +
+          '<span class="loc-title-wrap"><span class="loc-title">' + escapeHtml(g.title) + '</span>' +
           '<div class="loc-meta' + (hasToday ? ' has-today' : '') + '">' + metaText + (hasToday ? '・含今天' : '') + '</div></span>' +
         '</summary>' +
         '<div class="loc-body">' + dateRows + '</div>' +
@@ -395,7 +399,7 @@ function submitAction(payload, btnEl){
     .then(function(data){
       if (!data.ok) {
         var msg = '操作失敗';
-        if (data.error === 'full') msg = '這個活動已經額滿（4/4），畫面已更新';
+        if (data.error === 'full') msg = '這個時段已經額滿（' + MAX_SLOTS + '/' + MAX_SLOTS + '），畫面已更新';
         else if (data.error === 'name_mismatch') msg = '這筆登記不是這個姓名，無法取消';
         else if (data.error === 'busy_try_again') msg = '系統忙碌，請稍後再試一次';
         else if (data.error === 'not_found') msg = '找不到這個日期與地點的排班列，請確認試算表';
