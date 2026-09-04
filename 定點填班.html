@@ -216,6 +216,7 @@ function render(rows){
 
   locsEl.innerHTML = locs.map(function(loc){
     var filledTotal = 0, slotTotal = 0, hasToday = false;
+    var singleDate = loc.dates.length === 1;
     var dateRows = loc.dates.map(function(s){
       var names = s.names || [];
       var filled = names.filter(function(n){ return n && String(n).trim(); });
@@ -231,16 +232,21 @@ function render(rows){
       var addBtn = full ? '' :
         '<button class="btn primary add" type="button" data-act="fill" data-date="' + s.date + '" data-location="' + escapeAttr(s.location) + '" data-label="' + escapeAttr(s.dateLabel) + '">+ 填入姓名</button>';
       var timeHtml = (s.start && s.end) ? ('<span class="dr-time">' + s.start + '–' + s.end + '</span>') : '';
+      // 只有一個日期時，日期/時間已經顯示在收合時的標題列，展開後不再重複顯示
+      var dateTimeHtml = singleDate ? '' : ('<span class="dr-date">' + escapeHtml(s.dateLabel) + '</span>' + timeHtml);
       return (
         '<div class="date-row' + (isToday ? ' is-today' : '') + '" id="row-' + escapeAttr(s.location) + '-' + s.date + '">' +
-          '<div class="dr-head"><span class="dr-date">' + escapeHtml(s.dateLabel) + '</span>' + timeHtml + (isToday ? '<span class="today-badge">今天</span>' : '') +
+          '<div class="dr-head">' + dateTimeHtml + (isToday ? '<span class="today-badge">今天</span>' : '') +
             '<span class="dr-count' + (full ? ' full' : '') + '">' + count + '/4</span></div>' +
           '<div class="name-list">' + chips + addBtn + '</div>' +
         '</div>'
       );
     }).join('');
 
-    var dateLabels = loc.dates.map(function(s){ return s.dateLabel; }).join('、');
+    var dateLabels = loc.dates.map(function(s){
+      var t = (s.start && s.end) ? (' ' + s.start + '–' + s.end) : '';
+      return s.dateLabel + t;
+    }).join('、');
     var metaText = escapeHtml(dateLabels) + '・' + filledTotal + '/' + slotTotal + ' 已登記';
     return (
       '<details class="loc-card" id="loc-' + escapeAttr(loc.location) + '" data-loc-name="' + escapeAttr(loc.location) + '">' +
