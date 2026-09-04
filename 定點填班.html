@@ -202,11 +202,9 @@ function groupByLocation(rows){
     g.dates.sort(function(a,b){ return a.date.localeCompare(b.date); });
     return g;
   });
-  // 依地點「最早的排班日期」由近到遠排序（而不是依地點名稱），同一天則用地點名稱排序
+    // 依每個地點最早的排班日期排序（日期相同時再依地點名稱排序，避免順序不穩定）
   groups.sort(function(a,b){
-    var da = a.dates[0] ? a.dates[0].date : '';
-    var db = b.dates[0] ? b.dates[0].date : '';
-    if (da !== db) return da.localeCompare(db);
+    if (a.minDate !== b.minDate) return a.minDate.localeCompare(b.minDate);
     return a.location.localeCompare(b.location, 'zh-Hant');
   });
   return groups;
