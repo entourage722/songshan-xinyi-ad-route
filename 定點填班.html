@@ -203,10 +203,19 @@ function groupByLocation(rows){
     return g;
   });
   // 依每個地點最早的排班日期排序（日期相同時再依地點名稱排序，避免順序不穩定）
-  groups.sort(function(a,b){
-    if (a.minDate !== b.minDate) return a.minDate.localeCompare(b.minDate);
-    return a.location.localeCompare(b.location, 'zh-Hant');
-  });
+   groups.sort(function(a, b) {
+  // 將 "9/7" 轉換補零為 "09/07"，解決字串排序時 9/10 排在 9/7 前面的問題
+  var normalize = function(dStr) {
+    if (!dStr) return '';
+    return dStr.replace(/\b\d\b/g, '0$&');
+  };
+
+  var dateA = normalize(a.minDate);
+  var dateB = normalize(b.minDate);
+
+  if (dateA !== dateB) return dateA.localeCompare(dateB);
+  return a.location.localeCompare(b.location, 'zh-Hant');
+});
   return groups;
 }
 
