@@ -213,7 +213,7 @@ function getDisplayWindow(){
   monday.setDate(today.getDate() + diffToMonday);
   var endSunday = new Date(monday);
   endSunday.setDate(monday.getDate() + 13); // 本週一 ~ 下週日，共 14 天
-  return { start: monday, end: endSunday };
+  return { start: today, end: endSunday }; // 已過的日期（早於今天）不顯示
 }
 
 function filterRows(rows){
